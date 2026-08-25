@@ -3,6 +3,8 @@
 ## 文件
 
 - `VCM_7页精简汇报_可编辑版.pptx`：推荐使用的 7 页精简版。
+- `generate_vcm_ppt_refined.py`：当前精修版生成脚本，重绘科研架构与
+  Forward–Backward 路径，并嵌入论文定性结果作为证据。
 - `generate_vcm_ppt_7slides.py`：7 页精简版生成脚本。
 - `VCM_论文汇报_可编辑版.pptx`：20 页、16:9 中文科研汇报。
 - `generate_vcm_ppt.py`：可重复生成 PPT 的源脚本。
