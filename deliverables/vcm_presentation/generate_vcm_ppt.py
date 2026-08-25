@@ -18,6 +18,7 @@ from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
 from pptx.enum.dml import MSO_LINE_DASH_STYLE
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.oxml.xmlchemy import OxmlElement
 from pptx.util import Inches, Pt
 
 
@@ -167,7 +168,10 @@ def add_line(
     line.line.color.rgb = color
     line.line.width = Pt(width)
     if arrow:
-        line.line.end_arrowhead = True
+        line_xml = line.line._get_or_add_ln()
+        arrow_xml = OxmlElement("a:tailEnd")
+        arrow_xml.set("type", "triangle")
+        line_xml.append(arrow_xml)
     if dash:
         line.line.dash_style = MSO_LINE_DASH_STYLE.DASH
     return line
