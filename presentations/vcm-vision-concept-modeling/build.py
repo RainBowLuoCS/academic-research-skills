@@ -21,7 +21,7 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 import figures
-from content import PAPER, SLIDES
+from content import CONDENSED_SLIDES, PAPER, SLIDES
 from svgkit import (FILL_GREY, GREY, INK, MATH, MUTED, NAVY, RED, SANS, WHITE,
                     Canvas, _fmt, text_width)
 
@@ -418,9 +418,21 @@ def write_pptx(path, figs):
 # ------------------------------------------------------------------------- main
 
 def main():
+    global SLIDES, OUT, SLIDE_DIR, FIG_DIR, PNG_DIR
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--only", choices=["svg", "pdf", "pptx", "all"], default="all")
+    ap.add_argument("--deck", choices=["full", "condensed"], default="full",
+                    help="build the original 22-slide talk or the richer 8-slide version")
     args = ap.parse_args()
+
+    condensed = args.deck == "condensed"
+    if condensed:
+        SLIDES = CONDENSED_SLIDES
+        OUT = ROOT / "out-condensed"
+        SLIDE_DIR = OUT / "slides"
+        FIG_DIR = OUT / "figures"
+        PNG_DIR = OUT / "png"
+    stem = "VCM_talk_condensed" if condensed else "VCM_talk"
 
     for d in (SLIDE_DIR, FIG_DIR, PNG_DIR):
         if d.exists():
@@ -458,8 +470,8 @@ def main():
         pngs[idx] = png
 
     if args.only in ("pdf", "all"):
-        write_pdf(slide_svgs, OUT / "VCM_talk.pdf")
-        print(f"  PDF  -> out/VCM_talk.pdf")
+        write_pdf(slide_svgs, OUT / f"{stem}.pdf")
+        print(f"  PDF  -> {OUT.name}/{stem}.pdf")
 
     if args.only in ("pptx", "all"):
         import cairosvg
@@ -470,8 +482,8 @@ def main():
                                    output_width=int(box[2] * 2),
                                    output_height=int(box[3] * 2))
             figs[idx] = (svg_bytes, png, box)
-        write_pptx(OUT / "VCM_talk.pptx", figs)
-        print(f"  PPTX -> out/VCM_talk.pptx")
+        write_pptx(OUT / f"{stem}.pptx", figs)
+        print(f"  PPTX -> {OUT.name}/{stem}.pptx")
     return 0
 
 

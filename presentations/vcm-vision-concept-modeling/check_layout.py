@@ -10,13 +10,14 @@ from the same font metrics the build uses.
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import build
-from content import SLIDES
+from content import CONDENSED_SLIDES, SLIDES
 from svgkit import text_width
 
 SVG_NS = "{http://www.w3.org/2000/svg}"
@@ -82,8 +83,14 @@ def element_boxes(root):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--deck", choices=["full", "condensed"], default="full")
+    args = ap.parse_args()
+    slides = CONDENSED_SLIDES if args.deck == "condensed" else SLIDES
+    build.SLIDES = slides
+
     problems = 0
-    for idx, slide in enumerate(SLIDES, start=1):
+    for idx, slide in enumerate(slides, start=1):
         box = build.figure_box(slide)
         if box is None:
             continue

@@ -1327,3 +1327,332 @@ def fig_conclusion(cv: Canvas):
     cv.text(576, 360,
             "Model the concepts the instruction needs \u2014 not every token the "
             "image has.", size=23, weight="bold", fill=WHITE, anchor="middle")
+
+
+# ---------------------------------------------------------- condensed deck
+
+def fig_c_problem(cv: Canvas):
+    """Problem, token redundancy, and scaling pressure on one page."""
+    top = panel(cv, 0, 0, 730, 276, "One simple question still activates every patch")
+    image_glyph(cv, 26, top + 40, 128, 98)
+    bubble(cv, 10, top - 2, 296, 42, "What color is the dog's collar?", size=15,
+           fill=FILL_GREY, stroke=GREY, tail=None)
+    cv.arrow(170, top + 89, 222, top + 89, color="navy", sw=2.4)
+    cv.grid_tokens(234, top + 22, 24, 24, 5.6, gap=0.8,
+                   off=FILL_BLUE, off_stroke="#B8CEE4")
+    cv.text(306, top + 190, "576 vision tokens", size=16, weight="bold",
+            fill=RED, anchor="middle")
+    cv.arrow(388, top + 89, 432, top + 89, color="navy", sw=2.4)
+    llm_box(cv, 444, top + 38, 126, 102, "Large\nLanguage\nModel", size=15)
+    cv.arrow(578, top + 89, 616, top + 89, color="navy", sw=2.4)
+    bubble(cv, 624, top + 64, 82, 50, "Black", size=17, fill=FILL_GREEN,
+           stroke=GREEN, color=GREEN, tail=None)
+    cv.rect(468, top + 166, 212, 44, fill=FILL_RED, stroke=RED, sw=1.5, rx=7)
+    cv.text(574, top + 193, "only ~16 tokens matter", size=15, weight="bold",
+            fill=RED, anchor="middle")
+
+    top = panel(cv, 754, 0, 398, 276, "Why the waste compounds")
+    metrics = [
+        ("≈20×", "vision vs text tokens", NAVY, FILL_BLUE),
+        ("n²", "attention term", RED, FILL_RED),
+        ("2,880", "high-res tokens", AMBER, FILL_AMBER),
+    ]
+    for i, (value, label, col, fill) in enumerate(metrics):
+        y = top + 4 + i * 70
+        cv.rect(778, y, 350, 56, fill=fill, stroke=col, sw=1.5, rx=7)
+        cv.text(846, y + 36, value, size=27, weight="bold", fill=col,
+                anchor="middle")
+        cv.text(998, y + 33, label, size=15, weight="bold", fill=INK,
+                anchor="middle")
+
+    cv.rect(0, 294, 1152, 88, fill=FILL_GREY, stroke=GREY, sw=1.4, rx=8)
+    cv.text(24, 324, "Cost model", size=15, weight="bold", fill=NAVY)
+    cv.math(24, 358, "FLOPs = T · (4nd² + 2n²d + 2ndm)", size=24, fill=INK,
+            italic=False)
+    cv.rect(568, 310, 560, 56, fill=FILL_GREEN, stroke=GREEN, sw=1.7, rx=7)
+    cv.text(848, 345, "reduce vision length  →  reduce the dominant term",
+            size=17, weight="bold", fill=GREEN, anchor="middle")
+
+
+def fig_c_gap(cv: Canvas):
+    """Prior compression families against the paper's concept definition."""
+    cards = [
+        ("PRUNE", "rank attention", "drop low-score patches", GREY, FILL_GREY),
+        ("MERGE", "fixed queries", "compress to a preset length", AMBER, FILL_AMBER),
+        ("VCM", "instruction-conditioned", "learn semantic concepts", NAVY, FILL_BLUE),
+    ]
+    w, gap = 360, 36
+    for i, (head, sub, body, col, fill) in enumerate(cards):
+        x = i * (w + gap)
+        cv.rect(x, 0, w, 174, fill=WHITE, stroke=col, sw=1.8, rx=9)
+        cv.rect(x, 0, w, 40, fill=fill, stroke=col, sw=1.8, rx=9)
+        cv.text(x + 18, 27, head, size=18, weight="bold", fill=col)
+        cv.text(x + w - 18, 26, sub, size=13, weight="bold", fill=col,
+                anchor="end")
+        if i == 0:
+            for r in range(5):
+                for c in range(9):
+                    on = (r * 3 + c * 5) % 7 < 3
+                    cv.rect(x + 28 + c * 19, 60 + r * 19, 15, 15,
+                            fill=FILL_BLUE_D if on else WHITE,
+                            stroke=NAVY if on else "#E3E9EF", sw=1, rx=1.5)
+            cv.arrow(x + 220, 105, x + 270, 105, color="grey", sw=2.2)
+            token_row(cv, x + 282, 84, 2, cell=36, gap=9,
+                      fills=[FILL_BLUE_D, FILL_BLUE_D], strokes=[NAVY, NAVY])
+        elif i == 1:
+            token_row(cv, x + 24, 82, 7, cell=27, gap=6)
+            cv.arrow(x + 264, 96, x + 300, 96, color="grey", sw=2.2)
+            token_row(cv, x + 310, 82, 1, cell=36, fills=[FILL_AMBER],
+                      strokes=[AMBER])
+        else:
+            image_glyph(cv, x + 24, 70, 78, 60)
+            cv.arrow(x + 112, 100, x + 158, 100, color="navy", sw=2.2)
+            for j, (lab, yy) in enumerate((("collar", 62), ("dog", 96), ("scene", 130))):
+                cv.rect(x + 170 + j * 58, yy, 54, 30, fill=FILL_BLUE,
+                        stroke=NAVY, sw=1.3, rx=5)
+                cv.text(x + 197 + j * 58, yy + 20, lab, size=12.5,
+                        weight="bold", fill=NAVY, anchor="middle")
+        cv.text(x + w / 2, 158, body, size=14, weight="bold", fill=col,
+                anchor="middle")
+
+    cv.text(576, 212, "A vision concept model must satisfy all three",
+            size=19, weight="bold", fill=INK, anchor="middle")
+    reqs = [
+        ("HOW MANY", "adaptive quantity"),
+        ("WHICH", "semantic identity"),
+        ("WHERE", "spatial grounding"),
+    ]
+    for i, (head, body) in enumerate(reqs):
+        x = 92 + i * 354
+        cv.circle(x, 284, 31, fill=NAVY, stroke=None)
+        cv.text(x, 292, str(i + 1), size=24, weight="bold", fill=WHITE,
+                anchor="middle")
+        cv.rect(x + 46, 246, 238, 76, fill=FILL_BLUE, stroke=NAVY, sw=1.6, rx=8)
+        cv.text(x + 165, 276, head, size=16, weight="bold", fill=NAVY,
+                anchor="middle")
+        cv.text(x + 165, 301, body, size=14, fill=INK, anchor="middle")
+    cv.rect(92, 346, 968, 36, fill=FILL_GREEN, stroke=GREEN, sw=1.5, rx=7)
+    cv.text(576, 370, "all conditioned on the instruction — not a fixed compression rule",
+            size=16, weight="bold", fill=GREEN, anchor="middle")
+
+
+def fig_c_supervision(cv: Canvas):
+    """Keyword signal, masking contrast, and target-length mapping."""
+    steps = [
+        ("1", "SELECT", "person · yellow", NAVY, FILL_BLUE),
+        ("2", "MASK", "remove 0 → 2 keywords", RED, FILL_RED),
+        ("3", "MEASURE", "instruction − response", AMBER, FILL_AMBER),
+        ("4", "TARGET", "adaptive length L", GREEN, FILL_GREEN),
+    ]
+    for i, (num, head, body, col, fill) in enumerate(steps):
+        x = i * 282
+        cv.rect(x, 0, 258, 86, fill=fill, stroke=col, sw=1.6, rx=8)
+        cv.circle(x + 30, 28, 18, fill=col, stroke=None)
+        cv.text(x + 30, 35, num, size=18, weight="bold", fill=WHITE,
+                anchor="middle")
+        cv.text(x + 58, 30, head, size=16, weight="bold", fill=col)
+        cv.text(x + 20, 66, body, size=14, weight="bold", fill=INK)
+        if i < 3:
+            cv.arrow(x + 260, 43, x + 278, 43, color="navy", sw=2.2)
+
+    words = [("Where", GREY), ("is", GREY), ("the", GREY), ("person", RED),
+             ("in", GREY), ("yellow", RED), ("?", GREY)]
+    cv.rect(0, 108, 550, 116, fill=WHITE, stroke=BORDER, sw=1.4, rx=8)
+    cv.text(18, 134, "Semantic alignment exposes the useful words",
+            size=16, weight="bold", fill=NAVY)
+    x = 20
+    for wd, col in words:
+        width = max(52, len(wd) * 9 + 18)
+        cv.rect(x, 154, width, 34, fill=FILL_RED if col == RED else FILL_GREY,
+                stroke=col, sw=1.2, rx=4)
+        cv.text(x + width / 2, 177, wd, size=14, weight="bold", fill=col,
+                anchor="middle")
+        x += width + 8
+    cv.text(20, 210, "score > mean  →  keyword", size=13.5, weight="bold", fill=RED)
+
+    cv.rect(574, 108, 578, 116, fill=WHITE, stroke=BORDER, sw=1.4, rx=8)
+    cv.text(592, 134, "Masking turns one example into a free contrast",
+            size=16, weight="bold", fill=RED)
+    counts = [(0, 6), (1, 11), (2, 18)]
+    for i, (masked, kept) in enumerate(counts):
+        x = 610 + i * 176
+        cv.grid_tokens(x, 150, 6, 3, 11, gap=2,
+                       keep=set(range(kept)), on=FILL_BLUE_D,
+                       on_stroke=NAVY, off=WHITE, off_stroke="#E4EAF0")
+        cv.text(x + 38, 205, f"{masked} mask → {kept}", size=13.5,
+                weight="bold", fill=RED if masked else NAVY, anchor="middle")
+
+    cv.rect(0, 246, 1152, 136, fill=FILL_GREY, stroke=GREY, sw=1.4, rx=8)
+    cv.math(34, 294, "L = floor( M · S · [1 − Norm(N_{key})] )",
+            size=30, fill=INK)
+    cv.text(34, 328, "M input tokens", size=14, weight="bold", fill=NAVY)
+    cv.text(190, 328, "S information budget", size=14, weight="bold", fill=AMBER)
+    cv.text(390, 328, "Nkey keyword gap", size=14, weight="bold", fill=RED)
+    budgets = [("S=1/2", "288"), ("S=1/4", "144"), ("S=1/6", "72"), ("S=1/8", "36")]
+    for i, (lab, val) in enumerate(budgets):
+        x = 650 + i * 122
+        active = i == 1
+        cv.rect(x, 270, 104, 72, fill=FILL_BLUE if active else WHITE,
+                stroke=NAVY if active else GREY, sw=2 if active else 1.2, rx=7)
+        cv.text(x + 52, 295, lab, size=13.5, weight="bold",
+                fill=NAVY if active else GREY, anchor="middle")
+        cv.text(x + 52, 326, val + " tok", size=18, weight="bold",
+                fill=NAVY if active else INK, anchor="middle")
+    cv.text(894, 366, "Table 4 sweet spot", size=13, weight="bold",
+            fill=NAVY, anchor="middle")
+
+
+def fig_c_optimization(cv: Canvas):
+    """Compact lattice, gradient rule, and score-weighted merge."""
+    top = panel(cv, 0, 0, 476, 300, "1 · Sum over every monotone alignment")
+    x0, y0, dx, dy = 56, top + 16, 53, 45
+    for r in range(5):
+        for c in range(8):
+            cv.circle(x0 + c * dx, y0 + r * dy, 4.2, fill=WHITE,
+                      stroke="#B7C5D4", sw=1.2)
+            if c < 7:
+                cv.line(x0 + c * dx, y0 + r * dy,
+                        x0 + (c + 1) * dx, y0 + r * dy, stroke="#E3E9EF", sw=1)
+                if r < 4:
+                    cv.line(x0 + c * dx, y0 + r * dy,
+                            x0 + (c + 1) * dx, y0 + (r + 1) * dy,
+                            stroke="#E3E9EF", sw=1)
+    path = [0, 0, 1, 1, 2, 3, 3, 4]
+    pts = [(x0 + c * dx, y0 + path[c] * dy) for c in range(8)]
+    cv.path("M " + " L ".join(f"{x} {y}" for x, y in pts), stroke=RED, sw=3)
+    for x, y in pts:
+        cv.circle(x, y, 5.2, fill=RED, stroke=WHITE, sw=1.2)
+    cv.text(238, top + 224, "one path shown · all paths contribute",
+            size=14, weight="bold", fill=RED, anchor="middle")
+    cv.rect(46, top + 244, 384, 32, fill=FILL_GREEN, stroke=GREEN, sw=1.4, rx=6)
+    cv.text(238, top + 266, "2ᴹ enumeration  →  dynamic programming M²",
+            size=14, weight="bold", fill=GREEN, anchor="middle")
+
+    top = panel(cv, 500, 0, 300, 300, "2 · Learn the cut")
+    cv.math(524, top + 50, "∂L/∂a = p − γ/Z", size=28, fill=INK)
+    cv.text(524, top + 84, "prediction", size=13, weight="bold", fill=NAVY)
+    cv.text(648, top + 84, "posterior", size=13, weight="bold", fill=RED)
+    vals = [0.2, 0.4, 0.8, 0.7, 0.3, 0.1, 0.9, 0.7]
+    for i, v in enumerate(vals):
+        x = 524 + i * 31
+        h = v * 92
+        cv.rect(x, top + 206 - h, 22, h, fill=FILL_BLUE_D, stroke=NAVY, sw=1.1, rx=2)
+        cv.text(x + 11, top + 226, str(i + 1), size=11.5, fill=GREY, anchor="middle")
+    cv.line(520, top + 207, 778, top + 207, stroke=GREY, sw=1.2)
+    cv.text(650, top + 254, "posterior residual · CTC-shaped gradient",
+            size=13.5, weight="bold", fill=NAVY, anchor="middle")
+
+    top = panel(cv, 824, 0, 328, 300, "3 · Merge kept runs")
+    fills = [WHITE, FILL_BLUE_D, FILL_BLUE_D, WHITE, FILL_BLUE_D, FILL_BLUE_D]
+    strokes = [GREY, NAVY, NAVY, GREY, NAVY, NAVY]
+    token_row(cv, 850, top + 30, 6, cell=34, gap=10,
+              labels=["ø", "•", "•", "ø", "•", "•"],
+              fills=fills, strokes=strokes, lcolor=NAVY)
+    cv.arrow(986, top + 84, 986, top + 120, color="navy", sw=2.4)
+    cv.rect(858, top + 130, 112, 52, fill=FILL_AMBER, stroke=AMBER, sw=1.5, rx=7)
+    cv.rect(1000, top + 130, 112, 52, fill=FILL_AMBER, stroke=AMBER, sw=1.5, rx=7)
+    cv.text(914, top + 162, "concept 1", size=15, weight="bold", fill=AMBER,
+            anchor="middle")
+    cv.text(1056, top + 162, "concept 2", size=15, weight="bold", fill=AMBER,
+            anchor="middle")
+    cv.text(986, top + 216, "score-weighted average", size=14, weight="bold",
+            fill=INK, anchor="middle")
+    cv.rect(870, top + 234, 232, 36, fill=FILL_GREEN, stroke=GREEN, sw=1.5, rx=6)
+    cv.text(986, top + 258, "parallel implementation · 100×", size=14,
+            weight="bold", fill=GREEN, anchor="middle")
+
+    cv.rect(0, 318, 1152, 64, fill=NAVY, stroke=NAVY, sw=1.5, rx=8)
+    cv.text(576, 358,
+            "Unknown boundaries are marginalized during training — not guessed in advance",
+            size=19, weight="bold", fill=WHITE, anchor="middle")
+
+
+def fig_c_evidence(cv: Canvas):
+    """Accuracy, latency, FLOPs, and token reduction in a dashboard."""
+    rows = [r for r in DATA["vqa11"]
+            if r["name"] in {"SparseVLM", "VisionZip", "LLaVA-1.5", "VCM"}]
+    items = [dict(label=r["name"], value=r["avg"], sub=f"{r['tokens']} tok",
+                  **_style(r)) for r in rows]
+    top = panel(cv, 0, 0, 592, 288, "11-benchmark VQA average")
+    bar_chart(cv, 40, top + 16, 514, 176, items, vmin=54, vmax=62,
+              baseline=59.5, baseline_label="576-token baseline",
+              label_size=14, value_size=17)
+    axis_note(cv, 40, top + 248, "54.0")
+
+    top = panel(cv, 616, 0, 536, 288, "Measured efficiency · Table 10")
+    comparisons = [
+        ("tokens", 576, 128, "4.5× fewer"),
+        ("FLOPs (T)", 4.62, 1.71, "63% lower"),
+        ("latency (ms)", 57.82, 31.42, "1.8× faster"),
+    ]
+    for i, (name, base, ours, msg) in enumerate(comparisons):
+        y = top + 8 + i * 70
+        cv.text(640, y + 17, name, size=14, weight="bold", fill=INK)
+        cv.rect(746, y, 260, 18, fill=FILL_AMBER, stroke=AMBER, sw=1, rx=3)
+        cv.rect(746, y + 28, 260 * ours / base, 18, fill=FILL_BLUE_D,
+                stroke=NAVY, sw=1, rx=3)
+        cv.text(1018, y + 15, f"{base:g}", size=13, weight="bold", fill=AMBER)
+        cv.text(1018, y + 43, f"{ours:g}", size=13, weight="bold", fill=NAVY)
+        cv.text(1118, y + 31, msg, size=13.5, weight="bold", fill=GREEN,
+                anchor="end")
+
+    kpis = [
+        ("144", "vision tokens", "vs 576 baseline", NAVY, FILL_BLUE),
+        ("60.8", "VQA average", "vs 59.5 baseline", GREEN, FILL_GREEN),
+        ("85%", "fewer FLOPs", "analytic at S = 1/4", RED, FILL_RED),
+        ("+13.6", "COCO stuff Top-1", "11.8 → 25.4", AMBER, FILL_AMBER),
+    ]
+    for i, (value, label, sub, col, fill) in enumerate(kpis):
+        x = i * 288
+        cv.rect(x, 306, 264, 76, fill=fill, stroke=col, sw=1.6, rx=8)
+        cv.text(x + 68, 348, value, size=28, weight="bold", fill=col,
+                anchor="middle")
+        cv.text(x + 158, 334, label, size=14.5, weight="bold", fill=INK,
+                anchor="middle")
+        cv.text(x + 158, 359, sub, size=12.5, fill=GREY, anchor="middle")
+
+
+def fig_c_takeaway(cv: Canvas):
+    """Generalization evidence, contributions, and honest limitations."""
+    domains = [
+        ("HIGH RES", "2,880 → 160 tok", "70.1 avg", NAVY, FILL_BLUE),
+        ("VIDEO", "2,048 → 136 tok", "52.5 avg", RED, FILL_RED),
+        ("QWEN2-VL", "1,326 → 576 tok", "69.6 avg", AMBER, FILL_AMBER),
+        ("DENSE", "COCO · ADE", "all improve", GREEN, FILL_GREEN),
+    ]
+    for i, (head, detail, result, col, fill) in enumerate(domains):
+        x = i * 288
+        cv.rect(x, 0, 264, 94, fill=fill, stroke=col, sw=1.6, rx=8)
+        cv.text(x + 18, 28, head, size=16, weight="bold", fill=col)
+        cv.text(x + 18, 55, detail, size=14, weight="bold", fill=INK)
+        cv.text(x + 246, 80, result, size=13.5, weight="bold", fill=col,
+                anchor="end")
+
+    top = panel(cv, 0, 118, 698, 220, "Three contributions")
+    contributions = [
+        ("1", "Definition", "quantity · identity · location"),
+        ("2", "Learning", "text prior + forward–backward"),
+        ("3", "Outcome", "efficiency + dense perception"),
+    ]
+    for i, (num, head, body) in enumerate(contributions):
+        y = top + 4 + i * 54
+        cv.circle(34, y + 17, 17, fill=NAVY, stroke=None)
+        cv.text(34, y + 23, num, size=16, weight="bold", fill=WHITE,
+                anchor="middle")
+        cv.text(66, y + 14, head, size=16, weight="bold", fill=NAVY)
+        cv.text(190, y + 14, body, size=15, fill=INK)
+
+    top = panel(cv, 722, 118, 430, 220, "What remains unresolved", tcolor=RED)
+    limitations = [
+        ("Keyword bias", "selected words may not be the true concepts"),
+        ("Coarse mapping", "min–max length normalization is simplified"),
+    ]
+    for i, (head, body) in enumerate(limitations):
+        y = top + 8 + i * 76
+        cv.rect(746, y, 382, 62, fill=FILL_RED, stroke=RED, sw=1.3, rx=6)
+        cv.text(762, y + 24, head, size=15, weight="bold", fill=RED)
+        cv.text(762, y + 47, body, size=13.5, fill=INK)
+
+    cv.rect(0, 356, 1152, 26, fill=FILL_GREY, stroke=GREY, sw=1.2, rx=6)
+    cv.text(576, 374, "The transferable idea: let the task decide the visual granularity",
+            size=15.5, weight="bold", fill=NAVY, anchor="middle")

@@ -259,3 +259,55 @@ SLIDES = [
         cite=CITE_VCM,
     ),
 ]
+
+
+# Eight-slide version for a shorter talk.  It is a separate narrative rather
+# than a slice of ``SLIDES``: each page combines several adjacent claims into
+# one richer visual argument.
+CONDENSED_SLIDES = [
+    dict(
+        key="c_title", fig="fig_title_motif", kind="title",
+    ),
+    dict(
+        key="c_problem", fig="fig_c_problem",
+        title="The bottleneck — LVLMs still read every image token",
+        takeaway="The answer needs *a concept*; the model pays for *the whole image*.",
+        cite="Figure 1 and Appendix D of the paper.",
+    ),
+    dict(
+        key="c_gap", fig="fig_c_gap",
+        title="Compression is not yet concept modeling",
+        takeaway="A vision concept model must decide *how many*, *which*, and *where* — from the instruction.",
+        cite="Sections 1, 2, and 5.1 of the paper.",
+    ),
+    dict(
+        key="c_overview", fig="fig_overview",
+        title="VCM — one model, two training stages",
+        takeaway="Use the text prior to set a budget, then *align tokens into concepts*.",
+        cite="Section 3 and Figure 3(a) of the paper.",
+    ),
+    dict(
+        key="c_supervision", fig="fig_c_supervision",
+        title="Self-supervision — the instruction tells us what vision is needed",
+        takeaway="Keywords provide the signal; masking creates the contrast; *no concept labels are required*.",
+        cite="Sections 3.1–3.3 and Figures 2–4 of the paper.",
+    ),
+    dict(
+        key="c_optimization", fig="fig_c_optimization",
+        title="Optimization — learn variable-length concepts without choosing a cut",
+        takeaway="Forward–backward sums every alignment, then adjacent kept tokens *merge into concepts*.",
+        cite="Sections 3.3–3.4, Appendix C, Table 6, and Algorithm 2.",
+    ),
+    dict(
+        key="c_evidence", fig="fig_c_evidence",
+        title="Core evidence — less computation, no performance trade-off",
+        takeaway="At 144 tokens VCM beats the 576-token baseline; at S = 1/4 it uses *85% fewer FLOPs*.",
+        cite="Tables 1 and 10; Appendix D.",
+    ),
+    dict(
+        key="c_takeaway", fig="fig_c_takeaway",
+        title="What VCM changes — efficiency, representation, and scope",
+        takeaway="Model the concepts the instruction *needs* — not every token the image *has*.",
+        cite=CITE_VCM,
+    ),
+]
