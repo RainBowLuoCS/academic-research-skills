@@ -9,6 +9,9 @@
 - `out/VCM_talk.pdf`：快速预览版本
 - `out/slides/*.svg`：每一页的完整 SVG
 - `out/figures/*.svg`：每一页中心科研图的独立 SVG
+- `out-condensed/VCM_talk_condensed.pptx`：视觉元素更丰富的 8 页精简版
+- `out-condensed/VCM_talk_condensed.pdf`：8 页精简版预览
+- `out-condensed/{slides,figures}/*.svg`：精简版完整页面及独立科研图
 - `content.py`：叙事结构、论文数据和引用来源
 - `figures.py`：科研图定义
 - `build.py`：SVG、PDF 和 PPTX 生成器
@@ -32,6 +35,10 @@ PPT 中的标题、结论框和引用是 PowerPoint 原生对象，可直接编�
 cd presentations/vcm-vision-concept-modeling
 python3 build.py
 python3 check_layout.py
+
+# 生成并检查 8 页精简版
+python3 build.py --deck condensed
+python3 check_layout.py --deck condensed
 ```
 
 `check_layout.py` 会检查所有科研图是否越出其版面区域。
