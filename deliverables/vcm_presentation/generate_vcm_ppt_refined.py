@@ -537,7 +537,7 @@ def build_deck():
 
     # 5 — DP lattice and segment merging
     s = new_slide(prs)
-    add_title(s, "Forward–Backward turns unknown positions into a learnable alignment problem")
+    add_title(s, "Forward–Backward learns variable-length alignments")
     add_text(s, "Target length", 0.78, 1.24, 1.65, 0.30, size=14, bold=True, color=ACCENT)
     add_text(
         s,
