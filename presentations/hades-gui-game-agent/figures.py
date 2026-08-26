@@ -446,3 +446,452 @@ def fig_flywheel(cv: Canvas):
     cv.text(170, 369,
             "the supplied PDF states near-human / SOTA results but includes no benchmark tables to verify them",
             size=13.5, weight="bold", fill=INK)
+
+
+# ------------------------------------------------------ paper-specific detail
+# Final overrides: redraw Figures 1–4 at presentation scale with the paper's
+# exact mechanisms rather than generic architecture cards.
+
+def fig_problem(cv: Canvas):
+    # Richer commercial-game task strip.
+    tasks = [
+        ("WORLD", "navigate 3D space", NAVY),
+        ("COMBAT", "react and strategize", RED),
+        ("GUI", "operate nested menus", PURPLE),
+        ("QUEST", "preserve state for hours", AMBER),
+    ]
+    for i, (head, sub, col) in enumerate(tasks):
+        x = i * 288
+        cv.text(x + 132, 16, head, size=14, weight="bold", fill=col,
+                anchor="middle")
+        cv.rect(x + 10, 32, 244, 116, fill=WHITE, stroke=BORDER, sw=1.2, rx=5)
+        if i == 0:
+            screen(cv, x + 26, 48, 118, 78, col)
+            cv.path(f"M {x+154} 118 C {x+178} 96, {x+196} 72, {x+234} 62",
+                    stroke=col, sw=2, dash="5 4")
+            cv.circle(x + 230, 64, 6, fill=col, stroke=WHITE, sw=1)
+        elif i == 1:
+            cv.circle(x + 72, 88, 24, fill=FILL_RED, stroke=RED, sw=1.3)
+            cv.circle(x + 192, 88, 24, fill=FILL_BLUE, stroke=NAVY, sw=1.3)
+            cv.path(f"M {x+96} 88 L {x+168} 88", stroke=RED, sw=3)
+            cv.text(x + 132, 64, "HP", size=12, weight="bold", fill=RED,
+                    anchor="middle")
+            cv.rect(x + 76, 122, 112, 7, fill=FILL_RED, stroke=RED, sw=.8)
+            cv.rect(x + 76, 122, 74, 7, fill=GREEN, stroke=None)
+        elif i == 2:
+            for r in range(2):
+                for c in range(4):
+                    active = (r, c) in ((0, 1), (1, 3))
+                    cv.rect(x + 30 + c * 51, 54 + r * 40, 40, 29,
+                            fill=FILL_PURPLE if active else FILL_GREY,
+                            stroke=PURPLE if active else GREY, sw=.9, rx=3)
+            cv.path(f"M {x+218} 116 L {x+230} 140 L {x+210} 132 Z",
+                    fill=INK, stroke=WHITE, sw=1)
+        else:
+            pts = [(x + 30 + j * 34, 116 - (j % 3) * 25) for j in range(7)]
+            cv.path("M " + " L ".join(f"{a} {b}" for a, b in pts),
+                    stroke=col, sw=2.2)
+            for j, (a, b) in enumerate(pts):
+                cv.circle(a, b, 7, fill=FILL_AMBER, stroke=col, sw=1)
+                cv.text(a, b + 3, str(j + 1), size=8.5, weight="bold",
+                        fill=col, anchor="middle")
+        cv.text(x + 132, 174, sub, size=13, weight="bold", fill=INK,
+                anchor="middle")
+
+    # Capability coupling diagram.
+    cv.text(0, 216, "One task couples four systems", size=16,
+            weight="bold", fill=INK)
+    centers = [
+        (174, 286, "PERCEIVE", "screen only", NAVY, FILL_BLUE),
+        (442, 286, "REASON", "sparse decisions", RED, FILL_RED),
+        (710, 286, "REMEMBER", "cross-context state", PURPLE, FILL_PURPLE),
+        (978, 286, "CONTROL", "keyboard + mouse", AMBER, FILL_AMBER),
+    ]
+    for i, (x, y, head, body, col, fill) in enumerate(centers):
+        cv.circle(x, y, 48, fill=fill, stroke=col, sw=1.6)
+        cv.text(x, y - 2, head, size=14, weight="bold", fill=col,
+                anchor="middle")
+        cv.text(x, y + 20, body, size=11.5, fill=INK, anchor="middle")
+        if i < 3:
+            cv.arrow(x + 50, y, centers[i + 1][0] - 50, y,
+                     color="navy", sw=2)
+    cv.path("M 978 340 C 852 384, 292 384, 174 340",
+            stroke=GREEN, sw=2, dash="7 5", arrow="green")
+    cv.text(576, 370, "environment feedback closes the loop",
+            size=13.5, weight="bold", fill=GREEN, anchor="middle")
+
+
+def fig_pretraining(cv: Canvas):
+    # Figure 1 left: raw video/action reconstruction at two temporal scales.
+    cv.text(0, 18, "Raw interaction trajectory", size=15.5,
+            weight="bold", fill=INK)
+    cv.text(1152, 18, "visual 5 Hz · action 30 Hz",
+            size=13.5, weight="bold", fill=NAVY, anchor="end")
+    for t in range(4):
+        x = 14 + t * 278
+        screen(cv, x, 42, 96, 62, [NAVY, PURPLE, CYAN, AMBER][t])
+        cv.text(x + 48, 122, f"o{t + 1}", size=13,
+                weight="bold", fill=NAVY, anchor="middle")
+        cv.arrow(x + 106, 73, x + 144, 73, color="navy", sw=1.5)
+        for k in range(6):
+            bx = x + 150 + (k % 3) * 38
+            by = 42 + (k // 3) * 34
+            cv.rect(bx, by, 30, 27,
+                    fill=FILL_BLUE if (t + k) % 3 else FILL_RED,
+                    stroke=NAVY if (t + k) % 3 else RED, sw=.8, rx=3)
+            cv.text(bx + 15, by + 18,
+                    ["W", "A", "∅", "D", "F", "↖"][(t + k) % 6],
+                    size=10.5, weight="bold",
+                    fill=NAVY if (t + k) % 3 else RED, anchor="middle")
+        cv.text(x + 190, 122, f"a{t + 1}: 6 chunks",
+                size=12, weight="bold", fill=GREY, anchor="middle")
+        if t < 3:
+            cv.arrow(x + 264, 80, x + 276, 80, color="grey", sw=1.2)
+
+    cv.rect(0, 144, 1152, 44, fill=WHITE, stroke=NAVY, sw=1.2, rx=5)
+    cv.text(14, 171, "serialize", size=12.5, weight="bold", fill=NAVY)
+    cv.text(98, 173,
+            "<action_start>  ΔX  ΔY  ΔZ  ;  K1 ; K2 ; K3 ; K4 ; K5 ; K6  <action_end>",
+            size=16, weight="bold", fill=INK)
+
+    # Three method details, each with a more explicit mechanism.
+    cv.text(0, 226, "A  Key Shuffle", size=14.5, weight="bold", fill=INK)
+    cv.text(388, 226, "B  Repeated-action loss", size=14.5,
+            weight="bold", fill=INK)
+    cv.text(780, 226, "C  Mouse inversion", size=14.5,
+            weight="bold", fill=INK)
+    cv.line(366, 208, 366, 372, stroke="#D8E0E7", sw=1.1, dash="5 5")
+    cv.line(758, 208, 758, 372, stroke="#D8E0E7", sw=1.1, dash="5 5")
+
+    # A: conditional key bindings and synchronous label permutation.
+    cv.text(8, 254, "prompt", size=11.5, weight="bold", fill=GREY)
+    for i, lab in enumerate(("W↑", "A←", "S↓", "D→")):
+        key(cv, 62 + i * 54, 238, lab, NAVY, FILL_BLUE, 11)
+    cv.arrow(286, 254, 330, 254, color="red", sw=1.6)
+    cv.text(8, 308, "label", size=11.5, weight="bold", fill=GREY)
+    for i, lab in enumerate(("D↑", "S←", "W↓", "A→")):
+        key(cv, 62 + i * 54, 292, lab, RED, FILL_RED, 11)
+    cv.text(182, 354, "σ(prompt) = σ(action label)",
+            size=12.5, weight="bold", fill=RED, anchor="middle")
+
+    # B: 85% repeated actions and exponential weighting.
+    cv.text(576, 254, ">85% of steps repeat the previous action",
+            size=12.5, weight="bold", fill=RED, anchor="middle")
+    for i in range(9):
+        x = 400 + i * 38
+        opacity = .22 + .78 * FACTS["loss_decay"] ** i
+        cv.rect(x, 278, 30, 34, fill=RED, stroke=None, rx=3,
+                opacity=opacity)
+        cv.text(x + 15, 300, "W", size=11, weight="bold", fill=WHITE,
+                anchor="middle")
+        cv.text(x + 15, 330, f"{FACTS['loss_decay'] ** i:.2f}",
+                size=9.5, fill=GREY, anchor="middle")
+    cv.math(576, 358, "ω_t = γ^{k_t−1},   γ = 0.9",
+            size=14.5, fill=INK, anchor="middle")
+
+    # C: macro prediction to smooth high-frequency path.
+    cv.text(792, 254, "model: Δp every 200 ms", size=12.5,
+            weight="bold", fill=GREY)
+    cv.text(792, 278, "executor: six 33 ms increments", size=12.5,
+            weight="bold", fill=GREY)
+    jag = [(800, 342), (860, 294), (920, 350), (980, 282), (1042, 326)]
+    cv.path("M " + " L ".join(f"{a} {b}" for a, b in jag),
+            stroke=GREY, sw=1.4, dash="5 4")
+    cv.path("M 800 348 C 860 330, 900 316, 936 306 C 980 294, 1032 292, 1120 288",
+            stroke=GREEN, sw=2.4)
+    cv.text(1054, 354, "Kalman-filtered 30 Hz path", size=12.5,
+            weight="bold", fill=GREEN, anchor="middle")
+
+
+def fig_thinking(cv: Canvas):
+    # Figure 1 right: the exact input/output contract.
+    cv.text(0, 18, "Task-conditioned interaction contract",
+            size=15.5, weight="bold", fill=INK)
+    inputs = [
+        ("I", "task instruction", NAVY, FILL_BLUE),
+        ("mₜ", "long-term memory", PURPLE, FILL_PURPLE),
+        ("Hₜ", "recent vision + action", AMBER, FILL_AMBER),
+    ]
+    for i, (sym, body, col, fill) in enumerate(inputs):
+        x = 8 + i * 210
+        cv.rect(x, 44, 184, 48, fill=fill, stroke=col, sw=1.2, rx=5)
+        cv.text(x + 30, 74, sym, size=18, weight="bold", fill=col,
+                anchor="middle")
+        cv.text(x + 104, 72, body, size=12.5, weight="bold", fill=INK,
+                anchor="middle")
+        cv.path(f"M {x+92} 94 C {x+92} 116, 660 106, 660 132",
+                stroke=col, sw=1.6)
+    cv.rect(628, 128, 198, 54, fill=FILL_BLUE,
+            stroke=NAVY, sw=1.5, rx=7)
+    cv.text(727, 151, "HADES", size=17, weight="bold",
+            fill=NAVY, anchor="middle")
+    cv.text(727, 171, "adaptive think", size=12.5, fill=INK,
+            anchor="middle")
+    outputs = [
+        ("∅", "routine control", GREY, FILL_GREY),
+        ("rᶜᵘʳ", "local decision", RED, FILL_RED),
+        ("rᵐᵉᵐ", "memory summary", PURPLE, FILL_PURPLE),
+        ("aₜ", "device action", GREEN, FILL_GREEN),
+    ]
+    for i, (sym, body, col, fill) in enumerate(outputs):
+        y = 18 + i * 48
+        cv.path(f"M 826 155 C 854 155, 852 {y+19}, 878 {y+19}",
+                stroke=col, sw=1.4)
+        cv.rect(888, y, 250, 38, fill=fill, stroke=col, sw=1.1, rx=4)
+        cv.text(916, y + 24, sym, size=15, weight="bold", fill=col)
+        cv.text(1122, y + 24, body, size=12.5, weight="bold",
+                fill=INK, anchor="end")
+    cv.math(520, 210,
+            "πθ(rₜ, aₜ | I, mₜ, Hₜ) = πθ(rₜ | ·) πθ(aₜ | ·, rₜ)",
+            size=16.5, fill=INK, anchor="middle")
+
+    # Decision timeline with explicit triggers.
+    cv.text(0, 246, "Sparse annotation over a continuous trajectory",
+            size=15, weight="bold", fill=INK)
+    events = [
+        ("move", "∅", NAVY), ("move", "∅", NAVY),
+        ("route fails", "rᶜᵘʳ", RED), ("combat", "∅", NAVY),
+        ("subgoal", "rᵐᵉᵐ", PURPLE), ("UI change", "rᶜᵘʳ", RED),
+        ("move", "∅", NAVY),
+    ]
+    for i, (state, think, col) in enumerate(events):
+        x = 4 + i * 164
+        screen(cv, x, 266, 106, 56, col)
+        cv.text(x + 53, 338, state, size=11.5, weight="bold",
+                fill=col, anchor="middle")
+        cv.rect(x + 112, 275, 40, 38,
+                fill=FILL_GREY if think == "∅" else
+                (FILL_RED if col == RED else FILL_PURPLE),
+                stroke=col if think != "∅" else GREY, sw=1, rx=4)
+        cv.text(x + 132, 299, think, size=11.5, weight="bold",
+                fill=col if think != "∅" else GREY, anchor="middle")
+        if i < 6:
+            cv.arrow(x + 154, 294, x + 162, 294, color="grey", sw=1)
+    cv.text(576, 374,
+            "short-term queue keeps local detail  ·  rᵐᵉᵐ compacts completed stages into long-term memory",
+            size=13.5, weight="bold", fill=PURPLE, anchor="middle")
+
+
+def fig_rl(cv: Canvas):
+    # Figure 2 upper failure mode.
+    cv.text(0, 18, "Without compaction", size=15,
+            weight="bold", fill=RED)
+    cv.text(1146, 18, "hour-long trajectory → context OOM",
+            size=13, weight="bold", fill=RED, anchor="end")
+    for i in range(22):
+        x = 8 + i * 50
+        col = [FILL_BLUE, FILL_PURPLE, FILL_AMBER][(i // 7) % 3]
+        edge = [NAVY, PURPLE, AMBER][(i // 7) % 3]
+        cv.rect(x, 42, 40, 24, fill=col, stroke=edge, sw=.7, rx=3)
+    cv.line(8, 78, 1100, 78, stroke=RED, sw=1.8, dash="7 5")
+    cv.text(554, 98, "one terminal reward cannot explain which local action failed",
+            size=12.5, weight="bold", fill=RED, anchor="middle")
+
+    # Figure 2 lower TA-GRPO segmentation and memory transfer.
+    cv.text(0, 132, "TA-GRPO with memory-compacted segments",
+            size=15, weight="bold", fill=INK)
+    segs = [
+        (NAVY, FILL_BLUE, "τ₁", "m₁→m₂"),
+        (PURPLE, FILL_PURPLE, "τ₂", "m₂→m₃"),
+        (AMBER, FILL_AMBER, "τ₃", "m₃→m₄"),
+    ]
+    for g, (col, fill, lab, mem) in enumerate(segs):
+        x = 12 + g * 382
+        cv.rect(x, 156, 326, 112, fill=WHITE, stroke=col, sw=1.4, rx=6)
+        cv.text(x + 14, 178, f"SEGMENT {lab}", size=13.5,
+                weight="bold", fill=col)
+        for i in range(5):
+            cv.rect(x + 14 + i * 56, 192, 44, 26, fill=fill,
+                    stroke=col, sw=.8, rx=3)
+            cv.text(x + 36 + i * 56, 210, ["V", "r", "A", "V", "A"][i],
+                    size=10.5, weight="bold", fill=col, anchor="middle")
+        cv.rect(x + 14, 230, 132, 26, fill=FILL_GREEN,
+                stroke=GREEN, sw=.9, rx=4)
+        cv.text(x + 80, 248, "Rᵍ ∈ {0,1}", size=11.5,
+                weight="bold", fill=GREEN, anchor="middle")
+        cv.rect(x + 158, 230, 150, 26, fill=FILL_RED,
+                stroke=RED, sw=.9, rx=4)
+        cv.text(x + 233, 248, "+ α · PRMᵍ,ₜ", size=11.5,
+                weight="bold", fill=RED, anchor="middle")
+        if g < 2:
+            cv.arrow(x + 330, 208, x + 368, 208, color="navy", sw=1.7)
+            cv.text(x + 349, 198, mem, size=10.5, weight="bold",
+                    fill=NAVY, anchor="middle")
+
+    # Exact credit computation pipeline.
+    cv.text(0, 306, "Trajectory-aware credit assignment",
+            size=14.5, weight="bold", fill=INK)
+    stages = [
+        ("local reward", "rᵍ,ₜ = Rᵍ + α·PRMᵍ,ₜ", NAVY, FILL_BLUE, 210),
+        ("time discount", "r̃ᵍ,ₜ = βᵀ⁻¹⁻ᵗ rᵍ,ₜ", PURPLE, FILL_PURPLE, 226),
+        ("group normalize", "Aᵍ = (r̄ᵍ−μ)/σ", AMBER, FILL_AMBER, 196),
+        ("token credit", "Aᵍ,ₜ = βᵀ⁻¹⁻ᵗ Aᵍ", GREEN, FILL_GREEN, 210),
+    ]
+    x = 8
+    for i, (head, eq, col, fill, w) in enumerate(stages):
+        cv.rect(x, 326, w, 52, fill=fill, stroke=col, sw=1.1, rx=5)
+        cv.text(x + 10, 344, head, size=11.5, weight="bold", fill=col)
+        cv.text(x + w / 2, 366, eq, size=12.5, weight="bold",
+                fill=INK, anchor="middle")
+        if i < 3:
+            cv.arrow(x + w + 2, 352, x + w + 26, 352,
+                     color="navy", sw=1.4)
+        x += w + 28
+
+
+def fig_inference(cv: Canvas):
+    # Figure 3: client/server streaming at the top.
+    cv.text(0, 18, "A  Streaming client–server loop",
+            size=14.5, weight="bold", fill=INK)
+    screen(cv, 8, 42, 98, 64, NAVY)
+    cv.text(57, 125, "environment", size=11.5,
+            weight="bold", fill=NAVY, anchor="middle")
+    cv.arrow(114, 72, 168, 72, color="navy", sw=1.8)
+    cv.rect(182, 38, 280, 72, fill=FILL_BLUE,
+            stroke=NAVY, sw=1.4, rx=6)
+    cv.text(322, 64, "Streaming-vLLM", size=17,
+            weight="bold", fill=NAVY, anchor="middle")
+    cv.text(322, 89, "prefill once · decode action chunks",
+            size=12.5, weight="bold", fill=INK, anchor="middle")
+    cv.arrow(470, 72, 514, 72, color="navy", sw=1.8)
+    for i in range(6):
+        x = 528 + i * 82
+        cv.rect(x, 44, 66, 28, fill=FILL_BLUE,
+                stroke=NAVY, sw=.9, rx=3)
+        cv.text(x + 33, 63, f"K{i+1}", size=11,
+                weight="bold", fill=NAVY, anchor="middle")
+        cv.rect(x, 84, 66, 22,
+                fill=FILL_GREEN if i < 2 else FILL_GREY,
+                stroke=GREEN if i < 2 else GREY, sw=.8, rx=3)
+        cv.text(x + 33, 100, "execute" if i < 2 else "queued",
+                size=9.5, weight="bold",
+                fill=GREEN if i < 2 else GREY, anchor="middle")
+    cv.text(818, 126, "decode and execute overlap",
+            size=12.5, weight="bold", fill=RED, anchor="middle")
+
+    # Logical -> physical cache map.
+    cv.text(0, 166, "B  Sliding logical context",
+            size=14.5, weight="bold", fill=INK)
+    logical = [
+        ("Sys", NAVY, FILL_BLUE), ("Mem", PURPLE, FILL_PURPLE),
+        ("Vₜ₋₁", CYAN, FILL_CYAN), ("Aₜ₋₁", AMBER, FILL_AMBER),
+        ("Vₜ", CYAN, FILL_CYAN), ("Aₜ", AMBER, FILL_AMBER),
+        ("Vₜ₊₁", CYAN, FILL_CYAN), ("Aₜ₊₁", AMBER, FILL_AMBER),
+    ]
+    for i, (lab, col, fill) in enumerate(logical):
+        x = 14 + i * 91
+        cv.rect(x, 190, 76, 36, fill=fill, stroke=col, sw=1, rx=4)
+        cv.text(x + 38, 214, lab, size=11.5,
+                weight="bold", fill=col, anchor="middle")
+        cv.text(x + 38, 242, f"L{i+1}", size=10.5,
+                weight="bold", fill=GREY, anchor="middle")
+    cv.arrow(748, 208, 804, 208, color="red", sw=1.8)
+    cv.text(776, 197, "slide", size=10.5, weight="bold",
+            fill=RED, anchor="middle")
+    for i, (lab, col, fill) in enumerate(logical[2:] + [("Vₜ₊₂", CYAN, FILL_CYAN),
+                                                        ("Aₜ₊₂", AMBER, FILL_AMBER)]):
+        x = 816 + (i % 4) * 82
+        y = 174 + (i // 4) * 54
+        cv.rect(x, y, 68, 32, fill=fill, stroke=col, sw=.9, rx=4)
+        cv.text(x + 34, y + 21, lab, size=10.5,
+                weight="bold", fill=col, anchor="middle")
+
+    cv.text(0, 278, "C  Logical-to-physical KV lookup",
+            size=14.5, weight="bold", fill=INK)
+    mappings = [(1, 3), (2, 7), (3, 1), (4, 8), (5, 4), (6, 2)]
+    for i, (logical_id, physical_id) in enumerate(mappings):
+        x = 18 + i * 102
+        cv.rect(x, 300, 78, 28, fill=FILL_BLUE,
+                stroke=NAVY, sw=.9, rx=3)
+        cv.text(x + 39, 319, f"L{logical_id}", size=11,
+                weight="bold", fill=NAVY, anchor="middle")
+        cv.arrow(x + 39, 330, x + 39, 346, color="grey", sw=1)
+        cv.rect(x, 348, 78, 28, fill=FILL_GREEN,
+                stroke=GREEN, sw=.9, rx=3)
+        cv.text(x + 39, 367, f"P{physical_id}", size=11,
+                weight="bold", fill=GREEN, anchor="middle")
+    opts = [
+        ("RoPE refresh", PURPLE), ("CUDA Graph", NAVY),
+        ("action FSM", AMBER), ("C++ scheduler", GREEN),
+    ]
+    for i, (lab, col) in enumerate(opts):
+        x = 676 + (i % 2) * 228
+        y = 294 + (i // 2) * 46
+        cv.rect(x, y, 206, 34, fill=WHITE, stroke=col, sw=1.1, rx=4)
+        cv.text(x + 103, y + 22, lab, size=12.5,
+                weight="bold", fill=col, anchor="middle")
+    cv.text(1100, 377, ">20× vLLM  ·  >30 Hz",
+            size=15.5, weight="bold", fill=RED, anchor="end")
+
+
+def fig_flywheel(cv: Canvas):
+    # Figure 4 left: source-specific data construction.
+    cv.text(0, 18, "A  Multi-source data construction",
+            size=14.5, weight="bold", fill=INK)
+    sources = [
+        ("WEB", "rule filtering", "CPT data", NAVY, FILL_BLUE),
+        ("HUMAN", "segment + annotate", "SFT data", PURPLE, FILL_PURPLE),
+        ("AGENT", "verify + judge", "RL / PRM data", AMBER, FILL_AMBER),
+    ]
+    for i, (src, process, dest, col, fill) in enumerate(sources):
+        y = 46 + i * 74
+        cv.rect(0, y, 112, 42, fill=fill, stroke=col, sw=1.1, rx=5)
+        cv.text(56, y + 26, src, size=13.5,
+                weight="bold", fill=col, anchor="middle")
+        cv.arrow(118, y + 21, 174, y + 21, color="navy", sw=1.5)
+        cv.rect(184, y, 174, 42, fill=WHITE, stroke=GREY, sw=1, rx=5)
+        cv.text(271, y + 26, process, size=12.5,
+                weight="bold", fill=INK, anchor="middle")
+        cv.arrow(364, y + 21, 416, y + 21, color="navy", sw=1.5)
+        cv.rect(426, y, 140, 42, fill=fill, stroke=col, sw=1.1, rx=5)
+        cv.text(496, y + 26, dest, size=12.5,
+                weight="bold", fill=col, anchor="middle")
+    cv.math(282, 284, "τ = (o₁,a₁,o₂,a₂,…,o_T,a_T)",
+            size=17, fill=NAVY, anchor="middle")
+    cv.text(282, 310, "same API-free format across every source",
+            size=12.5, weight="bold", fill=GREY, anchor="middle")
+
+    cv.line(596, 8, 596, 326, stroke="#D8E0E7",
+            sw=1.1, dash="5 5")
+    cv.text(628, 18, "B  Online data flywheel",
+            size=14.5, weight="bold", fill=INK)
+
+    # Exact pass/fail routing around the policy.
+    cx, cy = 842, 174
+    cv.circle(cx, cy, 62, fill=FILL_BLUE, stroke=NAVY, sw=1.5)
+    cv.text(cx, cy - 4, "HADES", size=17, weight="bold",
+            fill=NAVY, anchor="middle")
+    cv.text(cx, cy + 20, "policy πᵏ", size=13, fill=INK,
+            anchor="middle")
+    nodes = [
+        (842, 48, "100+ workers", PURPLE, FILL_PURPLE),
+        (1040, 174, "checker + judger", GREEN, FILL_GREEN),
+        (842, 300, "PRM labels", RED, FILL_RED),
+        (650, 174, "SFT / RL pool", AMBER, FILL_AMBER),
+    ]
+    for x, y, lab, col, fill in nodes:
+        cv.rect(x - 72, y - 20, 144, 40, fill=fill,
+                stroke=col, sw=1.1, rx=5)
+        cv.text(x, y + 5, lab, size=12.5,
+                weight="bold", fill=col, anchor="middle")
+    cv.path("M 842 112 C 922 108, 1000 126, 1012 156",
+            stroke=PURPLE, sw=1.8, arrow="navy")
+    cv.path("M 1012 194 C 990 252, 924 292, 914 296",
+            stroke=RED, sw=1.8)
+    cv.text(998, 236, "FAIL", size=10.5, weight="bold",
+            fill=RED, anchor="middle")
+    cv.path("M 770 300 C 704 278, 656 232, 650 194",
+            stroke=RED, sw=1.8)
+    cv.path("M 650 154 C 672 92, 770 60, 812 68",
+            stroke=GREEN, sw=1.8)
+    cv.text(670, 112, "PASS", size=10.5, weight="bold",
+            fill=GREEN, anchor="middle")
+
+    # Compact evidence boundary and paper-level contribution.
+    cv.rect(0, 340, 1152, 42, fill=WHITE, stroke=RED,
+            sw=1.1, rx=5)
+    cv.text(14, 366, "EVIDENCE BOUNDARY", size=12.5,
+            weight="bold", fill=RED)
+    cv.text(170, 366,
+            "system metrics are reported; claimed benchmark leadership is not tabulated in the supplied manuscript",
+            size=13.2, weight="bold", fill=INK)
