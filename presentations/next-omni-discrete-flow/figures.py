@@ -743,3 +743,357 @@ def fig_takeaway(cv: Canvas):
     cv.text(670, 370, "SCOPE", size=13, weight="bold", fill=RED)
     cv.text(730, 370, "paper reports benchmark breadth, not deployed safety",
             size=13.5, fill=INK)
+
+
+# ------------------------------------------------ exact reference-style pass
+# Match the supplied talk more closely: white canvas, paper-like diagrams,
+# sparse annotation, and one dominant scientific figure per slide.
+
+def _media_tile(cv, x, y, w, h, kind, label, color):
+    cv.text(x + w / 2, y - 10, label, size=14, weight="bold", fill=INK,
+            anchor="middle")
+    cv.rect(x, y, w, h, fill=WHITE, stroke="#AEBECD", sw=1.2, rx=4)
+    if kind == "text":
+        for i, width in enumerate((.72, .86, .58, .80, .66)):
+            cv.rect(x + 14, y + 15 + i * 14, (w - 28) * width, 5,
+                    fill=GREY, stroke=None, rx=2, opacity=.72)
+    elif kind == "image":
+        cv.circle(x + 30, y + 27, 9, fill=FILL_AMBER, stroke=AMBER, sw=1)
+        cv.poly([(x + 8, y + h - 8), (x + 48, y + 42),
+                 (x + 72, y + h - 8)], fill=FILL_BLUE_D, stroke=NAVY, sw=1)
+        cv.poly([(x + 44, y + h - 8), (x + 82, y + 28),
+                 (x + w - 8, y + h - 8)], fill=FILL_PURPLE, stroke=PURPLE, sw=1)
+    elif kind == "audio":
+        pts = []
+        for i in range(36):
+            xx = x + 8 + i * (w - 16) / 35
+            amp = (8 + (i * 7) % 22) * (1 if i % 2 else -1)
+            pts.append((xx, y + h / 2 + amp))
+        cv.path("M " + " L ".join(f"{a:.1f} {b:.1f}" for a, b in pts),
+                stroke=color, sw=2)
+        cv.circle(x + w / 2, y + h / 2, 14, fill=WHITE, stroke=color, sw=1.5)
+        cv.text(x + w / 2, y + h / 2 + 6, "♪", size=18, weight="bold",
+                fill=color, anchor="middle")
+    elif kind == "video":
+        cv.rect(x + 8, y + 9, w - 16, h - 18, fill=FILL_GREY,
+                stroke=GREY, sw=1)
+        cv.circle(x + w / 2, y + h / 2, 20, fill=WHITE,
+                  stroke=color, sw=1.5, opacity=.92)
+        cv.poly([(x + w / 2 - 5, y + h / 2 - 9),
+                 (x + w / 2 + 11, y + h / 2),
+                 (x + w / 2 - 5, y + h / 2 + 9)],
+                fill=color, stroke=None)
+    cv.rect(x, y + h - 7, w, 7, fill=color, stroke=None)
+
+
+def fig_problem(cv: Canvas):
+    # Reference-style modality strip.
+    media = [
+        ("text", "Text", NAVY), ("image", "Image", PURPLE),
+        ("audio", "Audio", AMBER), ("video", "Video", CYAN),
+    ]
+    for i, (kind, label, col) in enumerate(media):
+        _media_tile(cv, 32 + i * 188, 36, 150, 100, kind, label, col)
+    cv.rect(814, 36, 306, 100, fill="#17212B", stroke="#17212B", sw=1.2, rx=5)
+    cv.text(967, 67, "Any input combination", size=16, weight="bold",
+            fill=WHITE, anchor="middle")
+    cv.text(967, 94, "T · V · A · Vd", size=22, weight="bold",
+            fill="#9FC0DE", anchor="middle")
+    cv.text(967, 120, "must support every task", size=13.5,
+            fill=WHITE, anchor="middle")
+    for i in range(4):
+        cv.path(f"M {107 + i * 188} 144 C {107 + i * 188} 168, 900 155, 900 180",
+                stroke="#83A9C9", sw=1.4, dash="4 4")
+
+    # Two architecture options, presented like a scientific comparison.
+    cv.text(30, 206, "Autoregressive inheritance", size=16,
+            weight="bold", fill=INK)
+    token_row(cv, 30, 228, [NAVY, PURPLE, CYAN, AMBER, NAVY, PURPLE],
+              cell=29, gap=12)
+    for i in range(5):
+        cv.arrow(60 + i * 41, 242, 68 + i * 41, 242, color="grey", sw=1.4)
+    cv.text(282, 246, "sequential", size=14, weight="bold", fill=RED)
+    cv.text(30, 284, "causal masking limits bidirectional fusion",
+            size=13.5, fill=GREY)
+
+    cv.line(430, 196, 430, 314, stroke="#D5DEE7", sw=1.2, dash="5 5")
+    cv.text(472, 206, "Hybrid / decoupled inheritance", size=16,
+            weight="bold", fill=INK)
+    cv.rect(472, 228, 116, 52, fill=FILL_GREY, stroke=GREY, sw=1.2, rx=5)
+    cv.text(530, 259, "shared input", size=13.5, weight="bold", fill=GREY,
+            anchor="middle")
+    for i, (lab, col, fill) in enumerate((
+            ("understand", NAVY, FILL_BLUE), ("generate", AMBER, FILL_AMBER),
+            ("retrieve", PURPLE, FILL_PURPLE))):
+        x = 666 + i * 150
+        cv.path(f"M 588 254 C 626 254, 626 254, {x - 10} 254",
+                stroke=col, sw=1.8)
+        cv.rect(x, 230, 130, 48, fill=fill, stroke=col, sw=1.2, rx=5)
+        cv.text(x + 65, 259, lab, size=13.5, weight="bold", fill=col,
+                anchor="middle")
+    cv.text(798, 304,
+            "task-specific branches add modules and keep features separated",
+            size=13.5, weight="bold", fill=RED, anchor="middle")
+
+    cv.arrow(244, 338, 468, 338, color="navy", sw=2)
+    cv.text(576, 344, "NExT-OMNI target", size=14, weight="bold",
+            fill=NAVY, anchor="middle")
+    cv.arrow(684, 338, 908, 338, color="navy", sw=2)
+    cv.text(576, 376,
+            "one deeply fused representation for understanding, generation, and retrieval",
+            size=17, weight="bold", fill=NAVY, anchor="middle")
+
+
+def fig_flow(cv: Canvas):
+    # Left input modalities, center flow manifold, right clean sequence.
+    cv.text(0, 20, "Omnimodal tokens", size=16, weight="bold", fill=INK)
+    cv.text(1152, 20, "Unified correction", size=16, weight="bold",
+            fill=INK, anchor="end")
+    inputs = [
+        ("T", NAVY, FILL_BLUE), ("V", PURPLE, FILL_PURPLE),
+        ("Vd", CYAN, FILL_CYAN), ("A", AMBER, FILL_AMBER),
+    ]
+    for i, (lab, col, fill) in enumerate(inputs):
+        y = 54 + i * 62
+        cv.rect(0, y, 108, 40, fill=fill, stroke=col, sw=1.3, rx=5)
+        cv.text(54, y + 25, lab, size=15, weight="bold", fill=col,
+                anchor="middle")
+        cv.arrow(114, y + 20, 170, 170, color="grey", sw=1.3)
+
+    # Scientific "probability path" diagram with multiple trajectories.
+    cv.ellipse(320, 174, 122, 112, fill="#F5F8FB", stroke="#A9BDCF",
+               sw=1.2, dash="5 4")
+    cv.ellipse(840, 174, 122, 112, fill="#F5F8FB", stroke="#A9BDCF",
+               sw=1.2, dash="5 4")
+    cv.text(320, 44, "noise distribution  p₀", size=14,
+            weight="bold", fill=GREY, anchor="middle")
+    cv.text(840, 44, "data distribution  p₁", size=14,
+            weight="bold", fill=NAVY, anchor="middle")
+    starts = [(250, 120), (270, 168), (300, 226), (352, 118),
+              (370, 180), (340, 236)]
+    ends = [(766, 116), (796, 154), (814, 218), (858, 112),
+            (882, 180), (866, 238)]
+    colors = [NAVY, PURPLE, CYAN, AMBER, NAVY, PURPLE]
+    for i, ((sx, sy), (ex, ey), col) in enumerate(zip(starts, ends, colors)):
+        bend = 72 if i % 2 else -58
+        cv.path(f"M {sx} {sy} C 470 {sy + bend}, 650 {ey - bend}, {ex} {ey}",
+                stroke=col, sw=2.1, opacity=.72)
+        cv.circle(sx, sy, 5, fill=GREY, stroke=None)
+        cv.circle(ex, ey, 6, fill=col, stroke=WHITE, sw=1)
+    cv.text(580, 88, "metric-induced probability paths", size=16,
+            weight="bold", fill=RED, anchor="middle")
+    cv.arrow(452, 102, 694, 102, color="red", sw=2)
+    cv.rect(480, 248, 200, 56, fill=WHITE, stroke=NAVY, sw=1.4, rx=6)
+    cv.text(580, 272, "kinetic optimal velocity", size=14,
+            weight="bold", fill=NAVY, anchor="middle")
+    cv.math(580, 294, "v_t(x)  →  x_1", size=16, fill=INK, anchor="middle")
+
+    # Right decoding destinations.
+    for i, (lab, col, fill) in enumerate(inputs):
+        y = 54 + i * 62
+        cv.arrow(964, 174, 1008, y + 20, color="grey", sw=1.3)
+        cv.rect(1016, y, 136, 40, fill=fill, stroke=col, sw=1.3, rx=5)
+        cv.text(1084, y + 25, f"clean {lab}", size=14,
+                weight="bold", fill=col, anchor="middle")
+
+    cv.math(576, 350,
+            "L_CE = E_{t,x_1,x_t} [ − Σ_i log p_{1|t}(x^i_1 | x_t) ]",
+            size=20, fill=INK, anchor="middle")
+    cv.text(576, 378,
+            "every position is predicted from the entire noisy multimodal sequence",
+            size=14, weight="bold", fill=GREY, anchor="middle")
+
+
+def fig_architecture(cv: Canvas):
+    # Closely follow the visual grammar of the paper's Figure 2.
+    cv.text(0, 20, "Modality encoders", size=16, weight="bold", fill=INK)
+    cv.text(468, 20, "Unified discrete flow", size=16, weight="bold",
+            fill=INK)
+    cv.text(946, 20, "Modality heads", size=16, weight="bold", fill=INK)
+    entries = [
+        ("Text tokenizer", NAVY, FILL_BLUE),
+        ("Vision encoder", PURPLE, FILL_PURPLE),
+        ("Audio encoder", AMBER, FILL_AMBER),
+    ]
+    for i, (lab, col, fill) in enumerate(entries):
+        y = 54 + i * 88
+        cv.rect(0, y, 148, 48, fill=fill, stroke=col, sw=1.3, rx=5)
+        cv.text(74, y + 29, lab, size=13.5, weight="bold", fill=col,
+                anchor="middle")
+        cv.arrow(154, y + 24, 198, y + 24, color="navy", sw=1.7)
+        cv.rect(208, y, 142, 48, fill=WHITE, stroke=col, sw=1.2, rx=5)
+        cv.text(279, y + 22,
+                "word embedding" if i == 0 else "codebook embedding",
+                size=12.5, weight="bold", fill=col, anchor="middle")
+        cv.text(279, y + 39, "discrete sequence", size=11.5, fill=GREY,
+                anchor="middle")
+        cv.path(f"M 350 {y + 24} C 402 {y + 24}, 410 174, 454 174",
+                stroke=col, sw=2.1)
+
+    cv.rect(466, 48, 280, 256, fill=FILL_BLUE, stroke=NAVY, sw=1.8, rx=8)
+    for i in range(4):
+        y = 74 + i * 50
+        cv.rect(496, y, 220, 34, fill=WHITE, stroke=NAVY, sw=1.1, rx=4)
+        cv.text(606, y + 21,
+                "multimodal self-attention" if i % 2 == 0 else "FFN",
+                size=13, weight="bold", fill=NAVY, anchor="middle")
+    cv.text(606, 284, "single encoder · deep feature fusion", size=13.5,
+            weight="bold", fill=NAVY, anchor="middle")
+
+    heads = [
+        ("LM head", "text", NAVY, FILL_BLUE),
+        ("Vision head", "image · video", PURPLE, FILL_PURPLE),
+        ("Audio head", "speech · audio", AMBER, FILL_AMBER),
+        ("EOS feature", "retrieval", GREEN, FILL_GREEN),
+    ]
+    for i, (head, out, col, fill) in enumerate(heads):
+        y = 42 + i * 70
+        cv.path(f"M 746 174 C 790 174, 790 {y + 24}, 834 {y + 24}",
+                stroke=col, sw=1.8)
+        cv.rect(844, y, 138, 48, fill=fill, stroke=col, sw=1.2, rx=5)
+        cv.text(913, y + 29, head, size=13.5, weight="bold", fill=col,
+                anchor="middle")
+        cv.arrow(988, y + 24, 1028, y + 24, color="grey", sw=1.5)
+        cv.text(1040, y + 28, out, size=13.5, weight="bold", fill=INK)
+
+    cv.rect(0, 326, 552, 56, fill="#F5F8FB", stroke="#B8C8D7", sw=1.2, rx=6)
+    cv.text(18, 349, "Representation warmup", size=13.5,
+            weight="bold", fill=NAVY)
+    cv.math(230, 349, "L^M_total = L^M_rec + L^M_sem",
+            size=16, fill=INK)
+    cv.text(18, 370, "reconstruction preserves detail · semantics align modalities",
+            size=12.5, fill=GREY)
+    cv.rect(576, 326, 576, 56, fill="#F5F8FB", stroke="#B8C8D7", sw=1.2, rx=6)
+    cv.text(594, 349, "Joint flow training", size=13.5,
+            weight="bold", fill=NAVY)
+    cv.math(756, 349, "L = λ₁L_CE + λ₂L^V_rec + λ₃L^A_rec",
+            size=16, fill=INK)
+    cv.text(594, 370, "reconstruction feedback prevents loss of fine-grained information",
+            size=12.5, fill=GREY)
+
+
+def fig_efficiency(cv: Canvas):
+    # Two paper-like diagrams, minimal framing.
+    cv.text(0, 20, "Dynamic-length generation", size=16,
+            weight="bold", fill=INK)
+    cv.text(620, 20, "Vanilla adaptive cache", size=16,
+            weight="bold", fill=INK)
+    cv.line(576, 8, 576, 322, stroke="#D6DEE7", sw=1.2, dash="5 5")
+
+    cv.text(16, 55, "Training", size=13.5, weight="bold", fill=GREY)
+    for i in range(6):
+        cv.rect(96 + i * 63, 38, 52, 36,
+                fill=FILL_BLUE_D if i < 3 else FILL_GREY,
+                stroke=NAVY if i < 3 else GREY, sw=1.1, rx=4)
+        cv.text(122 + i * 63, 61, "resp." if i < 3 else "PAD",
+                size=11.5, weight="bold",
+                fill=NAVY if i < 3 else GREY, anchor="middle")
+    cv.text(16, 118, "Inference", size=13.5, weight="bold", fill=GREY)
+    for row, (blocks, conf) in enumerate(((1, ".23"), (2, ".45"), (3, ".89"))):
+        y = 98 + row * 56
+        for i in range(4):
+            cv.rect(96 + i * 88, y, 72, 34,
+                    fill=FILL_BLUE if i < blocks else WHITE,
+                    stroke=NAVY if i < blocks else "#D9E1E8", sw=1.1, rx=4)
+        cv.text(464, y + 21, f"EOS {conf}", size=12.5, weight="bold",
+                fill=GREEN if row == 2 else RED)
+        cv.text(548, y + 21, "stop" if row == 2 else "expand",
+                size=12.5, weight="bold", fill=GREEN if row == 2 else RED,
+                anchor="end")
+    cv.arrow(106, 284, 496, 284, color="red", sw=1.8)
+    cv.text(300, 278, "block-by-block extension", size=13,
+            weight="bold", fill=RED, anchor="middle")
+
+    # Cache diagram: instruction fixed, response selectively updated.
+    cv.text(636, 55, "instruction features", size=13.5,
+            weight="bold", fill=NAVY)
+    cv.text(956, 55, "response features", size=13.5,
+            weight="bold", fill=PURPLE)
+    for r in range(7):
+        y = 76 + r * 29
+        for c in range(7):
+            cv.rect(636 + c * 34, y, 26, 21, fill=FILL_GREEN,
+                    stroke=GREEN, sw=.8, rx=3)
+        for c in range(5):
+            changed = (r + c * 2) % 4 == 0
+            cv.rect(936 + c * 34, y, 26, 21,
+                    fill=FILL_RED if changed else FILL_GREEN,
+                    stroke=RED if changed else GREEN, sw=.8, rx=3)
+    cv.text(755, 303, "cache", size=13, weight="bold", fill=GREEN,
+            anchor="middle")
+    cv.text(1008, 303, "adaptively update", size=13, weight="bold",
+            fill=RED, anchor="middle")
+
+    cv.rect(64, 336, 430, 46, fill=WHITE, stroke=NAVY, sw=1.4, rx=5)
+    cv.text(279, 365, "1.4× higher training efficiency",
+            size=16, weight="bold", fill=NAVY, anchor="middle")
+    cv.rect(658, 336, 430, 46, fill=WHITE, stroke=GREEN, sw=1.4, rx=5)
+    cv.text(873, 365, "1.2× faster response than AR",
+            size=16, weight="bold", fill=GREEN, anchor="middle")
+
+
+def fig_results(cv: Canvas):
+    # Conventional scientific charts, matching the reference's evidence slides.
+    groups = [
+        ("Omnimodal understanding", DATA["understanding"], 25, 42, "Table 1"),
+        ("Multi-turn vision", DATA["vision_interaction"], 45, 57, "Table 2"),
+        ("Cross-modal retrieval", DATA["retrieval"], 26, 34, "Table 4"),
+    ]
+    for i, (head, rows, vmin, vmax, source) in enumerate(groups):
+        x = i * 392
+        cv.text(x + 8, 20, head, size=15.5, weight="bold", fill=INK)
+        cv.text(x + 350, 20, source, size=11.5, fill=GREY, anchor="end")
+        items = [dict(label=r["name"].replace("-", "-\n"), value=r["avg"],
+                      **style(r)) for r in rows]
+        bar_chart(cv, x + 30, 48, 312, 230, items, vmin=vmin, vmax=vmax,
+                  label_size=11.5, value_size=15, sub_size=10)
+        cv.text(x + 30, 310, f"Avg. (%) · axis starts at {vmin}",
+                size=11, fill=MUTED)
+        best = rows[-1]["avg"]
+        prior = rows[-2]["avg"]
+        cv.rect(x + 70, 330, 228, 44, fill=WHITE,
+                stroke=[NAVY, PURPLE, GREEN][i], sw=1.3, rx=5)
+        cv.text(x + 184, 358, f"NExT-OMNI  +{best-prior:.1f}",
+                size=15, weight="bold", fill=[NAVY, PURPLE, GREEN][i],
+                anchor="middle")
+
+
+def fig_takeaway(cv: Canvas):
+    # Bar chart + mechanism summary, like the reference's final evidence pages.
+    cv.text(0, 20, "Cumulative ablation · average over six tasks",
+            size=16, weight="bold", fill=INK)
+    items = [dict(label=r["name"].replace(" · ", "\n"), value=r["avg"],
+                  **style(r)) for r in DATA["ablation"]]
+    bar_chart(cv, 34, 50, 600, 236, items, vmin=40, vmax=47,
+              label_size=12, value_size=16)
+    cv.text(34, 318, "Table 5 · axis starts at 40", size=11.5, fill=MUTED)
+    cv.arrow(90, 40, 610, 40, color="green", sw=1.8)
+    cv.text(350, 34, "+4.2 points", size=14, weight="bold", fill=GREEN,
+            anchor="middle")
+
+    cv.line(674, 8, 674, 328, stroke="#D6DEE7", sw=1.2, dash="5 5")
+    cv.text(708, 20, "What each component resolves", size=16,
+            weight="bold", fill=INK)
+    recipe = [
+        ("DFM", "replace causal decoding", NAVY),
+        ("Unified rep.", "support retrieval", PURPLE),
+        ("Dynamic length", "recover understanding", AMBER),
+        ("Reconstruction", "retain fine detail", GREEN),
+    ]
+    for i, (head, body, col) in enumerate(recipe):
+        y = 58 + i * 62
+        cv.circle(728, y + 18, 15, fill=col, stroke=None)
+        cv.text(728, y + 23, str(i + 1), size=13, weight="bold",
+                fill=WHITE, anchor="middle")
+        cv.text(760, y + 15, head, size=14.5, weight="bold", fill=col)
+        cv.text(760, y + 38, body, size=13.5, fill=INK)
+        if i < 3:
+            cv.arrow(728, y + 36, 728, y + 56, color="grey", sw=1.3)
+
+    cv.rect(708, 320, 420, 62, fill=WHITE, stroke=NAVY, sw=1.3, rx=5)
+    cv.text(724, 344, "NEXT", size=12.5, weight="bold", fill=AMBER)
+    cv.text(782, 344, "action trajectories · physical-AI video",
+            size=13.5, weight="bold", fill=INK)
+    cv.text(724, 368, "BOUNDARY", size=12.5, weight="bold", fill=RED)
+    cv.text(806, 368, "benchmark breadth ≠ deployed safety",
+            size=13, fill=INK)
